@@ -29,12 +29,39 @@
             <div class="container py-2">
                 <div class="input-group">
                     <form action="/" method="POST" class="w-100">
-                        <input type="text" name="shellInput" class="form-control" placeholder="type any command" aria-label="Username" aria-describedby="addon-wrapping">
+                        <input type="text" name="shellInput" id="shellInput" class="form-control" placeholder="type any command" aria-label="Username" aria-describedby="addon-wrapping">
                     </form>
                 </div>
             </div>
         </div>
     </div>
 
+    <script>
+        document.querySelector('form').addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const inputElement = document.getElementById('shellInput');
+            const userInput = inputElement.value;
+            
+            const response = await fetch('/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: `shellInput=${encodeURIComponent(userInput)}`
+            });
+
+            const data = await response.json();
+            
+            if (data.error) {
+                console.error('Error:', data.error);
+            } else {
+                const shellElement = document.getElementById('shell');
+                shellElement.innerHTML += data.result;
+            }
+
+            // フォームの入力をリセットする
+            inputElement.value = "";
+        });
+    </script>
 </body>
 </html>

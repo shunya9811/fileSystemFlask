@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, url_for, jsonify
 import urllib.request
 import urllib.parse
 from xml.etree.ElementTree import ElementTree
@@ -12,22 +12,28 @@ app = Flask(__name__)
 @app.route("/", methods=["GET", "POST"])
 def main_page():
     if request.method == "POST":
+        # user_input = request.form.get("shellInput").split()
+        
+        # # restaurant 住所
+        # if user_input[0] == "restaurants":
+        #     result = rastaurants(user_input[1:])
+        # # cct 為替
+        # # bashコマンド
+        # return render_template('index.html') 
         user_input = request.form.get("shellInput").split()
         
-        # restaurant 住所
+        # restaurants 住所
         if user_input[0] == "restaurants":
-            result = rastaurants(user_input[1:])
-            print(result)
-            print("a")
+            result = getRestaurants(user_input[1:])
+            return jsonify(result=result)
         # cct 為替
         # bashコマンド
-        return 'POST受け取ったよ'
+        return jsonify(error="Invalid command")
     return render_template('index.html')
 
-def rastaurants(address):
+def getRestaurants(address):
     if len(address) != 1:
-        print("Usage: resturants [address]")
-        return 1
+        return "Usage: restaurants [address]<br>"
 
     ADRS = address[0].strip()
 
@@ -46,13 +52,12 @@ def rastaurants(address):
     lng_element = et.find("./coordinate/lng")
 
     if lat_element is None or lng_element is None:
-        print("エラー: 入力された住所が正しくありません。")
-        return 1
+        return "Error: The address entered is incorrect.<br>"
 
     lat = lat_element.text
     lng = lng_element.text
 
-    print("{}({:.3f}, {:.3f})の近くのレストランは".format(ADRS, float(lat), float(lng)))
+    res = "{}({:.3f}, {:.3f})の近くのレストランは<br>".format(ADRS, float(lat), float(lng))
 
     # 緯度経度からレストラン情報取得（Hotpepper API）
     url2 = '{}&lat={}&lng={}&count={}'.format(URL2, lat, lng, 3)
@@ -60,6 +65,8 @@ def rastaurants(address):
     parsed = json.loads(f.read())['results']
 
     for (count, rest) in enumerate(parsed.get('shop')):
-        print("- {}\n  {}\n  {}".format(rest['name'],
+        res += "- {}<br>  {}<br>  <a href='{}'>{}</a><br><br>".format(rest['name'],
                                         rest['genre']['name'],
-                                        rest['urls']['pc']))
+                                        rest['urls']['pc'], 
+                                        rest['urls']['pc'])
+    return res
