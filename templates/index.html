@@ -26,9 +26,12 @@
             <div id="shell" class="container vh-60 bg-dark p-3 text-white">
             </div>
     
-    
-            <div class="container input-group py-2">
-                <input type="text" id ="shellInput" class="form-control" placeholder="type any command" aria-label="Username" aria-describedby="addon-wrapping">
+            <div class="container py-2">
+                <div class="input-group">
+                    <form action="/" method="POST" class="w-100">
+                        <input type="text" name="shellInput" class="form-control" placeholder="type any command" aria-label="Username" aria-describedby="addon-wrapping">
+                    </form>
+                </div>
             </div>
         </div>
     </div>
