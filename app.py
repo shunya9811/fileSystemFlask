@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, url_for, jsonify
+from flask import Flask, render_template, request, jsonify
 import urllib.request
 import urllib.parse
 from xml.etree.ElementTree import ElementTree
@@ -10,29 +10,30 @@ app = Flask(__name__)
 @app.route("/", methods=["GET", "POST"])
 def main_page():
     if request.method == "POST":
-        user_input = request.form.get("shellInput").split()
-        
+        # 
+        input_command = request.form.get("shellInput")
+        user_input = input_command.split()
         # restaurants 住所
         if user_input[0] == "restaurants":
             result = getRestaurants(user_input[1:])
-            return jsonify(result=result)
+            return jsonify(input=input_command, result=result)
         
         # cct 為替
         if user_input[0] == "cct":
             # cct 1 の場合
             if user_input[1] == "currency":
                 result = get_available_currencies()
-                return jsonify(result=result)
+                return jsonify(input=input_command, result=result)
             # cct 2 の場合
             elif len(user_input) == 5 and user_input[1] == "convert":
                 result = convert(user_input[2], user_input[3], user_input[4])
-                return jsonify(result=result)
+                return jsonify(input=input_command, result=result)
             # cct を使おうとしたが、入力ミスがあった場合
             else:
-                return jsonify(error="Usage: cct currency or cct convert [destinationLocale] [sourceDenomination] [sourceAmount]")
+                return jsonify(input=input_command, error="Usage: cct currency or cct convert [destinationLocale] [sourceDenomination] [sourceAmount]")
             
         # bashコマンド
-        return jsonify(error="Invalid command")
+        return jsonify(input=input_command, error="Invalid command")
     return render_template('index.html')
 
 # restaurants 
@@ -75,7 +76,7 @@ def getRestaurants(address):
     parsed = json.loads(f.read())['results']
 
     for (count, rest) in enumerate(parsed.get('shop')):
-        res += "- {}<br>  {}<br>  <a href='{}'>{}</a><br><br>".format(rest['name'],
+        res += "- {}<br>  {}<br>  <a href='{}'>{}</a><br>".format(rest['name'],
                                         rest['genre']['name'],
                                         rest['urls']['pc'], 
                                         rest['urls']['pc'])
