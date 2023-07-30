@@ -3,43 +3,53 @@ import urllib.request
 import urllib.parse
 from xml.etree.ElementTree import ElementTree
 import json
-import os
-import sys
-import subprocess
+import requests
 
 app = Flask(__name__)
 
 @app.route("/", methods=["GET", "POST"])
 def main_page():
     if request.method == "POST":
-        # user_input = request.form.get("shellInput").split()
-        
-        # # restaurant 住所
-        # if user_input[0] == "restaurants":
-        #     result = rastaurants(user_input[1:])
-        # # cct 為替
-        # # bashコマンド
-        # return render_template('index.html') 
         user_input = request.form.get("shellInput").split()
         
         # restaurants 住所
         if user_input[0] == "restaurants":
             result = getRestaurants(user_input[1:])
             return jsonify(result=result)
+        
         # cct 為替
+        if user_input[0] == "cct":
+            # cct 1 の場合
+            if user_input[1] == "currency":
+                result = get_available_currencies()
+                return jsonify(result=result)
+            # cct 2 の場合
+            elif len(user_input) == 5 and user_input[1] == "convert":
+                result = convert(user_input[2], user_input[3], user_input[4])
+                return jsonify(result=result)
+            # cct を使おうとしたが、入力ミスがあった場合
+            else:
+                return jsonify(error="Usage: cct currency or cct convert [destinationLocale] [sourceDenomination] [sourceAmount]")
+            
         # bashコマンド
         return jsonify(error="Invalid command")
     return render_template('index.html')
 
+# restaurants 
+# 住所の入力から、近くレストランをmax_number件以下取得できる
+#
+# 書式:
+#   restaurants [address]
 def getRestaurants(address):
+    # 表示するレストランの最大件数
+    max_number = 3
+
     if len(address) != 1:
         return "Usage: restaurants [address]<br>"
 
     ADRS = address[0].strip()
 
-    # Recruit_API_KEY 環境変数においている
     KEYID = 'fb8fe7e452eedc87'
-    # KEYID = os.getenv('Recruit_API_KEY')
 
     URL1 = "https://www.geocoding.jp/api/?q={}".format(urllib.parse.quote(ADRS))
     URL2 = "http://webservice.recruit.co.jp/hotpepper/gourmet/v1/?key={}&format=json".format(KEYID)
@@ -60,7 +70,7 @@ def getRestaurants(address):
     res = "{}({:.3f}, {:.3f})の近くのレストランは<br>".format(ADRS, float(lat), float(lng))
 
     # 緯度経度からレストラン情報取得（Hotpepper API）
-    url2 = '{}&lat={}&lng={}&count={}'.format(URL2, lat, lng, 3)
+    url2 = '{}&lat={}&lng={}&count={}'.format(URL2, lat, lng, max_number)
     f = urllib.request.urlopen(url2)
     parsed = json.loads(f.read())['results']
 
@@ -70,3 +80,51 @@ def getRestaurants(address):
                                         rest['urls']['pc'], 
                                         rest['urls']['pc'])
     return res
+
+# cct 1 現在利用可能な通貨の一覧を取得する
+#
+# 書式:
+#   cct currency   
+def get_available_currencies():
+    URL3 = "https://api.apilayer.com/exchangerates_data/symbols"
+
+    payload = {}
+    headers= {
+        "apikey": "lNOIdats10Xgzg8lZHgqANMSyxRmvU52"
+    }
+
+    try:
+        response = requests.request("GET", URL3, headers=headers, data=payload)
+        response.raise_for_status()  # レスポンスが正常でない場合、例外を発生させる
+        parsed = json.loads(response.text)['symbols']
+        res = ""
+
+        for key, value in parsed.items():
+            res += key + ": " + value + "<br>"
+        return res
+    except requests.exceptions.RequestException as e:
+        return "エラーが発生しました。詳細: " + str(e)
+    except json.JSONDecodeError as e:
+        return "APIからのデータを解析できませんでした。詳細: " + str(e)
+
+# cct 2 指定金額をある通貨から別の通貨への金額換算をする
+#
+# 書式:
+#   cct convert [destinationLocale] [sourceDenomination] [sourceAmount]
+def convert(destination, source, amount):
+    URL4 = "https://api.apilayer.com/exchangerates_data/convert?to={}&from={}&amount={}".format(destination, source, amount)
+
+    payload = {}
+    headers= {
+        "apikey": "lNOIdats10Xgzg8lZHgqANMSyxRmvU52"
+    }
+
+    response = requests.request("GET", URL4, headers=headers, data = payload)
+
+    
+    # APIから取得した結果を解析して、変換結果を取得
+    try:
+        result = json.loads(response.text)['result']
+        return "変換結果: " + source + "は" + str(result) + " " + destination + " です。<br>"
+    except json.JSONDecodeError:
+        return "通貨の変換に失敗しました。APIからのデータを解析できませんでした。<br>"

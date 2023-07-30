@@ -37,6 +37,8 @@
     </div>
 
     <script>
+        // シェル画面だけ動的に変化させるためにAjaxリクエストを使う
+        // サーバーにPOSTリクエストを送信
         document.querySelector('form').addEventListener('submit', async (event) => {
             event.preventDefault();
             const inputElement = document.getElementById('shellInput');
