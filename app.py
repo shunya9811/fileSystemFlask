@@ -125,7 +125,15 @@ def convert(destination, source, amount):
     
     # APIから取得した結果を解析して、変換結果を取得
     try:
-        result = json.loads(response.text)['result']
-        return "変換結果: " + source + "は" + str(result) + " " + destination + " です。<br>"
+        # APIからのレスポンスをJSON形式として解析
+        parsed_response = response.json()
+
+        # 変換結果を取得
+        result = parsed_response.get('result')
+        if result is not None:
+            return "変換結果: {} は {} {} です。<br>".format(source, result, destination)
+        else:
+            return "<span style='color: red'>Error</span>: 通貨の変換に失敗しました。変換結果が取得できませんでした。<br>"
+    
     except json.JSONDecodeError:
-        return "通貨の変換に失敗しました。APIからのデータを解析できませんでした。<br>"
+        return "<span style='color: red'>Error</span>: 通貨の変換に失敗しました。APIからのデータを解析できませんでした。<br>"
