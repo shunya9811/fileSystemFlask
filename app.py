@@ -10,7 +10,6 @@ app = Flask(__name__)
 @app.route("/", methods=["GET", "POST"])
 def main_page():
     if request.method == "POST":
-        # 
         input_command = request.form.get("shellInput")
         user_input = input_command.split()
         # restaurants 住所
@@ -82,7 +81,8 @@ def getRestaurants(address):
                                         rest['urls']['pc'])
     return res
 
-# cct 1 現在利用可能な通貨の一覧を取得する
+# cct 1 
+# 現在利用可能な通貨の一覧を取得する
 #
 # 書式:
 #   cct currency   
@@ -108,7 +108,8 @@ def get_available_currencies():
     except json.JSONDecodeError as e:
         return "APIからのデータを解析できませんでした。詳細: " + str(e)
 
-# cct 2 指定金額をある通貨から別の通貨への金額換算をする
+# cct 2 
+# 指定金額をある通貨から別の通貨への金額換算をする
 #
 # 書式:
 #   cct convert [destinationLocale] [sourceDenomination] [sourceAmount]
