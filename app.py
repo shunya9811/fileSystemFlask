@@ -4,6 +4,11 @@ import urllib.parse
 from xml.etree.ElementTree import ElementTree
 import json
 import requests
+import os
+from dotenv import load_dotenv
+
+# .envファイルのパスを指定して読み込み
+load_dotenv('.env')
 
 app = Flask(__name__)
 
@@ -49,7 +54,7 @@ def getRestaurants(address):
 
     ADRS = address[0].strip()
 
-    KEYID = 'fb8fe7e452eedc87'
+    KEYID = os.getenv('hotpapper_API')
 
     URL1 = "https://www.geocoding.jp/api/?q={}".format(urllib.parse.quote(ADRS))
     URL2 = "http://webservice.recruit.co.jp/hotpepper/gourmet/v1/?key={}&format=json".format(KEYID)
@@ -91,7 +96,7 @@ def get_available_currencies():
 
     payload = {}
     headers= {
-        "apikey": "lNOIdats10Xgzg8lZHgqANMSyxRmvU52"
+        "apikey": os.getenv('APILayer_API')
     }
 
     try:
@@ -118,7 +123,7 @@ def convert(destination, source, amount):
 
     payload = {}
     headers= {
-        "apikey": "lNOIdats10Xgzg8lZHgqANMSyxRmvU52"
+        "apikey": os.getenv('APILayer_API')
     }
 
     response = requests.request("GET", URL4, headers=headers, data = payload)

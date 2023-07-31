@@ -24,6 +24,7 @@ nbclient           0.8.0
 nbconvert          7.5.0
 nbformat           5.9.0
 pip                23.2.1
+python-dotenv      1.0.0
 requests           2.31.0
 setuptools         68.0.0
 tinycss2           1.2.1
